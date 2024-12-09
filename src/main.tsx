@@ -15,7 +15,7 @@ type WebViewMessage =
 
 Devvit.configure({
   redditAPI: true,
-  redis: true,
+  redis: true, // Enables Redis integration for storing and retrieving persistent data
 });
 
 // Add a custom post type to Devvit
@@ -51,7 +51,7 @@ Devvit.addCustomPostType({
           break;
 
         default:
-          throw new Error(`Unknown message type: ${msg satisfies never}`);
+          throw new Error(`Unknown message type: ${(msg as WebViewMessage).type}`);
       }
     };
 
@@ -61,7 +61,7 @@ Devvit.addCustomPostType({
       context.ui.webView.postMessage('myWebView', {
         type: 'initialData',
         data: {
-          username,
+          username: username,
         },
       });
     };
