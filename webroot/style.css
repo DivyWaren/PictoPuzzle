@@ -2,7 +2,6 @@ body {
   font-family: Arial, sans-serif;
   text-align: center;
   margin: 0;
-  padding: 20px;
 }
 
 #puzzle-container {
@@ -19,5 +18,19 @@ body {
   width: 100px;
   height: 100px;
   background-size: 300px 300px;
-  cursor: grab;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.empty-slot {
+  background: none;
+  border: 1px dashed #ccc;
+  cursor: default;
+}
+
+.disabled {
+  pointer-events: none;
+  opacity: 0.6;
 }

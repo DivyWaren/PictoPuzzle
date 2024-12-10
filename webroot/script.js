@@ -1,4 +1,4 @@
-class PicturePuzzle {
+class SlidingPuzzle {
   constructor() {
     // The container where the puzzle pieces are displayed
     this.container = document.querySelector('#puzzle-container');
@@ -15,6 +15,15 @@ class PicturePuzzle {
     this.timer = 0;
     this.timerInterval = null;
 
+    // Set grid size (3x3)
+    this.gridSize = 3;
+
+    // Array to track current positions of the tiles
+    this.puzzleState = [];
+
+    // Tracks the empty tile position
+    this.emptySlot = null;
+
     // Path to puzzle image
     this.imageSrc = 'static/image.jpg';
 
@@ -29,45 +38,60 @@ class PicturePuzzle {
     // Reset the container
     this.container.innerHTML = '';
 
-    // Randomize puzzle piece order
-    const positions = Array.from({ length: 9 }, (_, i) => i).sort(() => Math.random() - 0.5);
+    // Disable the grid container
+    this.container.classList.add('disabled'); 
 
-    // Create each puzzle piece and add them to the container
-    positions.forEach((pos, index) => {
+    // Get total number of puzzle pieces
+    const totalPieces = this.gridSize * this.gridSize;
+    this.puzzleState = Array.from({ length: totalPieces }, (_, i) => i);
+
+    // Shuffle puzzle pieces randomly, leaving the last slot as the empty slot
+    this.puzzleState = this.puzzleState.sort(() => Math.random() - 0.5);
+    this.emptySlot = this.puzzleState.indexOf(totalPieces - 1);
+
+    this.renderPuzzle();
+  }
+
+  renderPuzzle() {
+    this.container.innerHTML = '';
+    this.puzzleState.forEach((pos, index) => {
       const piece = document.createElement('div');
       piece.className = 'puzzle-piece';
-      piece.style.backgroundImage = `url(${this.imageSrc})`;
-      piece.style.backgroundPosition = `${(pos % 3) * -100}px ${(Math.floor(pos / 3)) * -100}px`;
-      piece.dataset.index = index;
-      this.container.appendChild(piece);
 
-      // Add drag and drop functionality
-      piece.draggable = true;
-      piece.addEventListener('dragstart', (e) => this.dragStart(e));
-      piece.addEventListener('dragover', (e) => this.dragOver(e));
-      piece.addEventListener('drop', (e) => this.drop(e));
+      if (pos === this.gridSize * this.gridSize - 1) {
+        // Empty slot
+        piece.classList.add('empty-slot');
+        this.emptySlot = index;
+      } else {
+        piece.style.backgroundImage = `url(${this.imageSrc})`;
+        piece.style.backgroundPosition = `${(pos % this.gridSize) * -100}px ${(Math.floor(pos / this.gridSize)) * -100}px`;
+        piece.dataset.index = pos;
+
+        // Add click event for sliding
+        piece.addEventListener('click', () => this.slidePiece(index));
+      }
+
+      this.container.appendChild(piece);
     });
   }
 
-  // Saves the puzzle piece's original index to dataTransfer object while it is being dragged
-  dragStart(e) {
-    e.dataTransfer.setData('text/plain', e.target.dataset.index);
-  }
+  slidePiece(index) {
+    const row = Math.floor(index / this.gridSize);
+    const col = index % this.gridSize;
+    const emptyRow = Math.floor(this.emptySlot / this.gridSize);
+    const emptyCol = this.emptySlot % this.gridSize;
 
-  // Prevents the default behaviour to allow dropping
-  dragOver(e) {
-    e.preventDefault();
-  }
+    // Check if the clicked piece is adjacent to the empty slot
+    if (Math.abs(row - emptyRow) + Math.abs(col - emptyCol) === 1) {
+      // Swap the clicked piece with the empty slot
+      [this.puzzleState[index], this.puzzleState[this.emptySlot]] = [
+        this.puzzleState[this.emptySlot],
+        this.puzzleState[index],
+      ];
+      this.emptySlot = index;
 
-  // Swaps the dragged puzzle piece with target piece
-  drop(e) {
-    const draggedIndex = e.dataTransfer.getData('text/plain');
-    const targetIndex = e.target.dataset.index;
-
-    // Swap the two pieces
-    const pieces = this.container.querySelectorAll('.puzzle-piece');
-    this.container.insertBefore(pieces[draggedIndex], pieces[targetIndex]);
-    this.container.insertBefore(pieces[targetIndex], pieces[draggedIndex]);
+      this.renderPuzzle();
+    }
   }
 
   // Handles timer
@@ -76,6 +100,9 @@ class PicturePuzzle {
     this.timerElement.textContent = this.timer;
     this.startButton.disabled = true;
     this.submitButton.disabled = false;
+
+    // Enable the puzzle grid when game starts
+    this.container.classList.remove('disabled');
 
     // Starts timer by incrementing timer count every second and updating the display
     this.timerInterval = setInterval(() => {
@@ -86,11 +113,8 @@ class PicturePuzzle {
 
   // Checks if puzzle is solved
   checkSolution() {
-    // Fetches all pieces
-    const pieces = Array.from(this.container.querySelectorAll('.puzzle-piece'));
-
-    // Returns true if all pieces are in the correct order (index), else return false
-    return pieces.every((piece, index) => parseInt(piece.dataset.index, 10) === index);
+    // Returns true if all pieces are in the correct ascending order (solved state), else return false
+    return this.puzzleState.every((value, index) => value === index);
   }
 
   // Handles end game results
@@ -100,6 +124,9 @@ class PicturePuzzle {
       // Stops timer
       clearInterval(this.timerInterval);
 
+      // Show the full image
+      this.showFullImage();
+
       // Sends time data to Devvit service
       window.parent.postMessage(
         { type: 'solutionComplete', data: { time: this.timer } },
@@ -107,12 +134,34 @@ class PicturePuzzle {
       );
 
       // Display success message
-      alert('Congratulations! Puzzle solved in ' + this.timer + ' seconds.');
+      window.parent.postMessage({
+        type: 'showAlert',
+        message: 'Congratulations! Puzzle solved in ' + this.timer + ' seconds.'
+      }, '*');
     } else {
       // Alerts the user to continue trying
-      alert('Puzzle is not solved correctly. Keep trying!');
+      window.parent.postMessage({
+        type: 'showAlert',
+        message: 'Puzzle is not solved correctly. Keep trying!'
+      }, '*');
     }
   }
+
+// Display the full image
+showFullImage() {
+  // Reset the puzzle container
+  this.container.innerHTML = '';
+
+  // Create a single div to show the full image
+  const fullImage = document.createElement('div');
+  fullImage.className = 'full-image';
+  fullImage.style.backgroundImage = `url(${this.imageSrc})`;
+  fullImage.style.width = `${this.container.offsetWidth}px`; // Match container width
+  fullImage.style.height = `${this.container.offsetHeight}px`; // Match container height
+  fullImage.style.backgroundSize = 'cover';
+
+  this.container.appendChild(fullImage);
+}
 }
 
-new PicturePuzzle();
+new SlidingPuzzle();

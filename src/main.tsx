@@ -1,6 +1,6 @@
 import './createPost.js';
 
-import { Devvit, useState } from '@devvit/public-api';
+import { Devvit, JSONValue, useState } from '@devvit/public-api';
 
 // Defines the messages exchanged between Devvit and Web View
 type WebViewMessage =
@@ -91,13 +91,22 @@ Devvit.addCustomPostType({
         </vstack>
         <vstack grow={webviewVisible} height={webviewVisible ? '100%' : '0%'}>
           <vstack border="thick" borderColor="black" height={webviewVisible ? '100%' : '0%'}>
-            <webview
-              id="myWebView"
-              url="page.html"
-              onMessage={(msg) => onMessage(msg as WebViewMessage)}
-              grow
-              height={webviewVisible ? '100%' : '0%'}
-            />
+          <webview
+            id="myWebView"
+            url="page.html"
+            onMessage={(msg: JSONValue) => {
+              if (typeof msg === 'object' && msg !== null && 'type' in msg) {
+                if (msg.type === 'showAlert' && 'message' in msg) {
+                  context.ui.showToast(msg.message as string);
+                } else {
+                  // Handle other message types if necessary
+                  onMessage(msg as WebViewMessage);
+                }
+              }
+            }}
+            grow
+            height={webviewVisible ? '100%' : '0%'}
+          />
           </vstack>
         </vstack>
       </vstack>
