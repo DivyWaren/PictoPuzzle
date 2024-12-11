@@ -30,14 +30,11 @@ class SlidingPuzzle {
     this.startButton.addEventListener('click', () => this.startGame());
     this.submitButton.addEventListener('click', () => this.submitSolution());
 
-    this.initPuzzle();
+    this.showFullImage();
   }
 
   // Handles loading and scrambling of the puzzle
   initPuzzle() {
-    // Reset the container
-    this.container.innerHTML = '';
-
     // Disable the grid container
     this.container.classList.add('disabled'); 
 
@@ -53,7 +50,9 @@ class SlidingPuzzle {
   }
 
   renderPuzzle() {
+    // Reset the container
     this.container.innerHTML = '';
+
     this.puzzleState.forEach((pos, index) => {
       const piece = document.createElement('div');
       piece.className = 'puzzle-piece';
@@ -96,6 +95,7 @@ class SlidingPuzzle {
 
   // Handles timer
   startGame() {
+    this.initPuzzle();
     this.timer = 0;
     this.timerElement.textContent = this.timer;
     this.startButton.disabled = true;
