@@ -1,3 +1,5 @@
+import { isSolvable } from './puzzleUtils.js';
+
 class SlidingPuzzle {
   constructor() {
     // The container where the puzzle pieces are displayed
@@ -40,10 +42,16 @@ class SlidingPuzzle {
 
     // Get total number of puzzle pieces
     const totalPieces = this.gridSize * this.gridSize;
-    this.puzzleState = Array.from({ length: totalPieces }, (_, i) => i);
 
-    // Shuffle puzzle pieces randomly, leaving the last slot as the empty slot
-    this.puzzleState = this.puzzleState.sort(() => Math.random() - 0.5);
+    // Repeat scrambling until solvable
+    do {
+      // Shuffle puzzle pieces randomly, leaving the last slot as the empty slot
+      this.puzzleState = Array.from({ length: totalPieces }, (_, i) => i);
+      this.puzzleState = this.puzzleState.sort(() => Math.random() - 0.5);
+    } while (!isSolvable(this.puzzleState, this.gridSize));
+
+    console.log(isSolvable(this.puzzleState, this.gridSize));
+
     this.emptySlot = this.puzzleState.indexOf(totalPieces - 1);
 
     this.renderPuzzle();
