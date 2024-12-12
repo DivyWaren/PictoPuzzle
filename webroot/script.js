@@ -137,39 +137,33 @@ class SlidingPuzzle {
 
       // Sends time data to Devvit service
       window.parent.postMessage(
-        { type: 'solutionComplete', data: { time: this.timer } },
+        { type: 'completion', data: { time: this.timer } },
         '*'
       );
-
-      // Display success message
-      window.parent.postMessage({
-        type: 'showAlert',
-        message: 'Congratulations! Puzzle solved in ' + this.timer + ' seconds.'
-      }, '*');
     } else {
       // Alerts the user to continue trying
       window.parent.postMessage({
-        type: 'showAlert',
+        type: 'alert',
         message: 'Puzzle is not solved correctly. Keep trying!'
       }, '*');
     }
   }
 
-// Display the full image
-showFullImage() {
-  // Reset the puzzle container
-  this.container.innerHTML = '';
+  // Display the full image
+  showFullImage() {
+    // Reset the puzzle container
+    this.container.innerHTML = '';
 
-  // Create a single div to show the full image
-  const fullImage = document.createElement('div');
-  fullImage.className = 'full-image';
-  fullImage.style.backgroundImage = `url(${this.imageSrc})`;
-  fullImage.style.width = `${this.container.offsetWidth}px`; // Match container width
-  fullImage.style.height = `${this.container.offsetHeight}px`; // Match container height
-  fullImage.style.backgroundSize = 'cover';
+    // Create a single div to show the full image
+    const fullImage = document.createElement('div');
+    fullImage.className = 'full-image';
+    fullImage.style.backgroundImage = `url(${this.imageSrc})`;
+    fullImage.style.width = `${this.container.offsetWidth}px`; // Match container width
+    fullImage.style.height = `${this.container.offsetHeight}px`; // Match container height
+    fullImage.style.backgroundSize = 'cover';
 
-  this.container.appendChild(fullImage);
-}
+    this.container.appendChild(fullImage);
+  }
 }
 
 new SlidingPuzzle();

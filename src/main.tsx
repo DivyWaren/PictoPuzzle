@@ -1,22 +1,35 @@
 import './createPost.js';
 
-import { Devvit, JSONValue, useState } from '@devvit/public-api';
+import { WebViewMessage } from './types/WebViewMessage.js';
 
-// Defines the messages exchanged between Devvit and Web View
-type WebViewMessage =
-  | {
-      type: 'initialData';
-      data: { username: string };
-    }
-  | {
-      type: 'completion';
-      data: { timeTaken: number };
-    };
+import { Devvit, JSONValue, useState } from '@devvit/public-api';
 
 Devvit.configure({
   redditAPI: true,
   redis: true, // Enables Redis integration for storing and retrieving persistent data
 });
+
+async function updatePuzzleTime(context: Devvit.Context, postId: string, username: string, time: number) {
+  const key = `puzzle:${postId}`;
+  const field = username;
+
+  // Get the current best time for this user on this puzzle
+  const currentBestTime = await context.redis.hGet(key, field);
+
+  // If there's no current time, or the new time is better, update it
+  if (!currentBestTime || time < parseInt(currentBestTime)) {
+    await context.redis.hSet(key, { [field]: time.toString() });
+    console.log(`Updated best time for user ${username} on puzzle ${postId}: ${time}`);
+  } else {
+    console.log(`Time not updated. Current best (${currentBestTime}) is better than new time (${time})`);
+  }
+}
+
+async function getBestTime(context: Devvit.Context, postId: string, username: string): Promise<number | null> {
+  const key = `puzzle:${postId}`;
+  const time = await context.redis.hGet(key, username);
+  return time ? parseInt(time) : null;
+}
 
 // Add a custom post type to Devvit
 Devvit.addCustomPostType({
@@ -32,21 +45,48 @@ Devvit.addCustomPostType({
     // Create a reactive state for web view visibility
     const [webviewVisible, setWebviewVisible] = useState(false);
 
+    const [puzzleCompleted, setPuzzleCompleted] = useState(false);
+
     // Handle messages from the WebView
     const onMessage = async (msg: WebViewMessage) => {
+      console.log("onMessage called with:", msg);
       switch (msg.type) {
         case 'completion':
-          const { timeTaken } = msg.data;
+          console.log("completion message");
 
-          // Store the completion time in Redis
-          await context.redis.set(
-            `puzzle_score_${context.postId}_${username}`,
-            timeTaken.toString()
-          );
+          const { time } = msg.data as { time: number };
+          const postId = context.postId;
+          const username = context.userId;
+          console.log("time: " + time);
+        
+          if (postId && username) {
+            // Update the puzzle time only if postId is defined
+            updatePuzzleTime(context, postId, username, time)
+              .then(() => getBestTime(context, postId, username))
+              .then((bestTime) => {
+                context.ui.showToast(`Your best time is ${bestTime} seconds!`);
+              })
+              .catch((error) => {
+                console.error('Error updating or getting puzzle time:', error);
+              });
+          } else {
+            console.error('PostId is undefined');
+            context.ui.showToast('Error: Unable to update puzzle time');
+          }
 
           // Show feedback in a toast notification
           context.ui.showToast({
-            text: `Great job, ${username}! You completed the puzzle in ${timeTaken} seconds.`,
+            text: `Great job, ${username}! You completed the puzzle in ${time} seconds.`,
+          });
+          setWebviewVisible(false);
+          setPuzzleCompleted(true);
+          break;
+
+        case 'alert':
+          console.log("alert message");
+          // Show feedback in a toast notification
+          context.ui.showToast({
+            text: msg.message,
           });
           break;
 
@@ -89,26 +129,29 @@ Devvit.addCustomPostType({
           <spacer />
           <button onPress={onShowWebviewClick}>Start Puzzle</button>
         </vstack>
-        <vstack grow={webviewVisible} height={webviewVisible ? '100%' : '0%'}>
-          <vstack border="thick" borderColor="black" height={webviewVisible ? '100%' : '0%'}>
-          <webview
-            id="myWebView"
-            url="page.html"
-            onMessage={(msg: JSONValue) => {
-              if (typeof msg === 'object' && msg !== null && 'type' in msg) {
-                if (msg.type === 'showAlert' && 'message' in msg) {
-                  context.ui.showToast(msg.message as string);
-                } else {
-                  // Handle other message types if necessary
-                  onMessage(msg as WebViewMessage);
-                }
-              }
-            }}
-            grow
-            height={webviewVisible ? '100%' : '0%'}
-          />
+
+        {webviewVisible && (
+          <vstack grow={webviewVisible} height={webviewVisible ? '100%' : '0%'}>
+            <vstack border="thick" borderColor="black" height={webviewVisible ? '100%' : '0%'}>
+            <webview
+              id="myWebView"
+              url="page.html"
+              onMessage={(msg) => onMessage(msg as WebViewMessage)}
+              grow
+              height={webviewVisible ? '100%' : '0%'}
+            />
+            </vstack>
           </vstack>
-        </vstack>
+        )}
+
+        {puzzleCompleted && (
+          <vstack grow alignment="middle center">
+            <text size="xlarge" weight="bold">Puzzle Completed!</text>
+            <spacer size="medium" />
+            <text>Great job, {username}!</text>
+            <spacer size="medium" />
+          </vstack>
+        )}
       </vstack>
     );
   },
