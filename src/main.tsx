@@ -1,5 +1,6 @@
 import './createPost.js';
 
+
 import { WebViewMessage } from './types/WebViewMessage.js';
 
 import { Devvit, JSONValue, useState } from '@devvit/public-api';
@@ -47,6 +48,18 @@ Devvit.addCustomPostType({
 
     const [puzzleCompleted, setPuzzleCompleted] = useState(false);
 
+    const [bestTime, setBestTime] = useState<number | null>(null);
+
+    // Fetch best time on component mount
+    useState(async () => {
+      const postId = context.postId;
+      if (postId && username) {
+        const time = await getBestTime(context, postId, username);
+        setBestTime(time); // Update the state with the fetched best time
+        console.log(time);
+      }
+    });
+
     // Handle messages from the WebView
     const onMessage = async (msg: WebViewMessage) => {
       console.log("onMessage called with:", msg);
@@ -55,20 +68,20 @@ Devvit.addCustomPostType({
           console.log("completion message");
 
           const { time } = msg.data as { time: number };
-          const postId = context.postId;
+          
           const username = context.userId;
           console.log("time: " + time);
-        
+          const postId = context.postId;
+
           if (postId && username) {
-            // Update the puzzle time only if postId is defined
-            updatePuzzleTime(context, postId, username, time)
-              .then(() => getBestTime(context, postId, username))
-              .then((bestTime) => {
-                context.ui.showToast(`Your best time is ${bestTime} seconds!`);
-              })
-              .catch((error) => {
-                console.error('Error updating or getting puzzle time:', error);
-              });
+            // Update the puzzle time in Redis
+            await updatePuzzleTime(context, postId, username, time);
+
+            // Fetch and update the best time
+            const updatedBestTime = await getBestTime(context, postId, username);
+            setBestTime(updatedBestTime);
+
+            context.ui.showToast(`Your best time is ${updatedBestTime} seconds!`);
           } else {
             console.error('PostId is undefined');
             context.ui.showToast('Error: Unable to update puzzle time');
@@ -105,24 +118,28 @@ Devvit.addCustomPostType({
         },
       });
     };
-
     // Render the custom post type
     return (
+      
       <vstack grow padding="small">
         <vstack
           grow={!webviewVisible}
           height={webviewVisible ? '0%' : '100%'}
           alignment="middle center"
         >
-          <text size="xlarge" weight="bold">
-            Picture Alignment Puzzle
-          </text>
+          <image url='Logo.jpg' imageWidth={128} imageHeight={128}/>
           <spacer />
           <vstack alignment="start middle">
             <hstack>
               <text size="medium">Username:</text>
               <text size="medium" weight="bold">
                 {username ?? ''}
+              </text>
+            </hstack>
+            <hstack>
+              <text size="medium">Best Time:</text>
+              <text size="medium" weight="bold">
+                {bestTime !== null ? `${bestTime} seconds` : 'No time recorded yet'}
               </text>
             </hstack>
           </vstack>

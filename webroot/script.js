@@ -11,9 +11,6 @@ class SlidingPuzzle {
     // Button to start game timer
     this.startButton = document.querySelector('#start-timer');
 
-    // Button to submit the solution (i.e. finished puzzle)
-    this.submitButton = document.querySelector('#submit-solution');
-
     this.timer = 0;
     this.timerInterval = null;
 
@@ -30,7 +27,6 @@ class SlidingPuzzle {
     this.imageSrc = 'static/image.jpg';
 
     this.startButton.addEventListener('click', () => this.startGame());
-    this.submitButton.addEventListener('click', () => this.submitSolution());
 
     this.showFullImage();
   }
@@ -98,6 +94,10 @@ class SlidingPuzzle {
       this.emptySlot = index;
 
       this.renderPuzzle();
+      // Check if the puzzle is solved
+      if (this.checkSolution()) {
+        this.submitSolution(); // Automatically submit solution upon completion
+      }
     }
   }
 
@@ -107,7 +107,7 @@ class SlidingPuzzle {
     this.timer = 0;
     this.timerElement.textContent = this.timer;
     this.startButton.disabled = true;
-    this.submitButton.disabled = false;
+
 
     // Enable the puzzle grid when game starts
     this.container.classList.remove('disabled');
