@@ -3,7 +3,7 @@ import './createPost.js';
 
 import { WebViewMessage } from './types/WebViewMessage.js';
 
-import { Devvit, JSONValue, useState } from '@devvit/public-api';
+import { Devvit, useAsync, useState } from '@devvit/public-api';
 
 Devvit.configure({
   redditAPI: true,
@@ -26,11 +26,12 @@ async function updatePuzzleTime(context: Devvit.Context, postId: string, usernam
   }
 }
 
-async function getBestTime(context: Devvit.Context, postId: string, username: string): Promise<number | null> {
+async function getBestTime(context: Devvit.Context, postId: string, userId: string): Promise<number | null> {
   const key = `puzzle:${postId}`;
-  const time = await context.redis.hGet(key, username);
+  const time = await context.redis.hGet(key, userId);
   return time ? parseInt(time) : null;
 }
+
 
 // Add a custom post type to Devvit
 Devvit.addCustomPostType({
@@ -43,6 +44,11 @@ Devvit.addCustomPostType({
       return currUser?.username ?? 'anon';
     });
 
+    const [userId] = useState(async () => {
+      const currUser = await context.userId;
+      return currUser?? 'anon';
+    });
+
     // Create a reactive state for web view visibility
     const [webviewVisible, setWebviewVisible] = useState(false);
 
@@ -50,15 +56,16 @@ Devvit.addCustomPostType({
 
     const [bestTime, setBestTime] = useState<number | null>(null);
 
-    // Fetch best time on component mount
-    useState(async () => {
+    const { data: fetchedBestTime } = useAsync(async () => {
       const postId = context.postId;
-      if (postId && username) {
-        const time = await getBestTime(context, postId, username);
-        setBestTime(time); // Update the state with the fetched best time
-        console.log(time);
+      if (postId && userId) {
+        var time =await getBestTime(context, postId, userId);
+        return time
       }
-    });
+      return null;
+    }, { depends: [userId] });
+    
+    setBestTime(fetchedBestTime);
 
     // Handle messages from the WebView
     const onMessage = async (msg: WebViewMessage) => {
@@ -119,6 +126,7 @@ Devvit.addCustomPostType({
       });
     };
     // Render the custom post type
+    console.log(bestTime)
     return (
       
       <vstack grow padding="small">
@@ -127,11 +135,11 @@ Devvit.addCustomPostType({
           height={webviewVisible ? '0%' : '100%'}
           alignment="middle center"
         >
-          <image url='Logo.jpg' imageWidth={128} imageHeight={128}/>
+          <image url='logo.jpg' imageWidth={128} imageHeight={128}/>
           <spacer />
           <vstack alignment="start middle">
             <hstack>
-              <text size="medium">Username:</text>
+              <text size="medium">Ussername:</text>
               <text size="medium" weight="bold">
                 {username ?? ''}
               </text>
@@ -139,7 +147,7 @@ Devvit.addCustomPostType({
             <hstack>
               <text size="medium">Best Time:</text>
               <text size="medium" weight="bold">
-                {bestTime !== null ? `${bestTime} seconds` : 'No time recorded yet'}
+                {bestTime != null ? `${bestTime} seconds` : 'No time recorded yet'}
               </text>
             </hstack>
           </vstack>
