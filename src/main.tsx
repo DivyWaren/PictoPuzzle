@@ -56,6 +56,7 @@ Devvit.addCustomPostType({
 
     const [bestTime, setBestTime] = useState<number | null>(null);
 
+    // Fetch best time on component mount
     const { data: fetchedBestTime } = useAsync(async () => {
       const postId = context.postId;
       if (postId && userId) {
@@ -135,11 +136,11 @@ Devvit.addCustomPostType({
           height={webviewVisible ? '0%' : '100%'}
           alignment="middle center"
         >
-          <image url='logo.jpg' imageWidth={128} imageHeight={128}/>
+          <image url='logo.jpg' imageWidth={300} imageHeight={300}/>
           <spacer />
           <vstack alignment="start middle">
             <hstack>
-              <text size="medium">Ussername:</text>
+              <text size="medium">Username:</text>
               <text size="medium" weight="bold">
                 {username ?? ''}
               </text>
