@@ -3,7 +3,7 @@ import './createPost.js';
 
 import { WebViewMessage } from './types/WebViewMessage.js';
 
-import { Devvit, JSONValue, useState } from '@devvit/public-api';
+import { Devvit, useAsync, useState } from '@devvit/public-api';
 
 Devvit.configure({
   redditAPI: true,
@@ -50,15 +50,24 @@ Devvit.addCustomPostType({
 
     const [bestTime, setBestTime] = useState<number | null>(null);
 
-    // Fetch best time on component mount
-    useState(async () => {
+    const { data: fetchedBestTime } = useAsync(async () => {
       const postId = context.postId;
       if (postId && username) {
-        const time = await getBestTime(context, postId, username);
-        setBestTime(time); // Update the state with the fetched best time
-        console.log(time);
+        return await getBestTime(context, postId, username);
       }
-    });
+      return null;
+    }, { depends: [username] });
+    
+    // async will ensure that the function returns a Promise<null> instead of just null
+    useAsync(async () => {
+      if (fetchedBestTime !== undefined) {
+        setBestTime(fetchedBestTime);
+        console.log(fetchedBestTime);
+      }
+
+      // return null as useAsync expects to return a valid JSON value
+      return null;
+    }, { depends: [fetchedBestTime] });
 
     // Handle messages from the WebView
     const onMessage = async (msg: WebViewMessage) => {
@@ -127,11 +136,11 @@ Devvit.addCustomPostType({
           height={webviewVisible ? '0%' : '100%'}
           alignment="middle center"
         >
-          <image url='Logo.jpg' imageWidth={128} imageHeight={128}/>
+          <image url='logo.jpg' imageWidth={128} imageHeight={128}/>
           <spacer />
           <vstack alignment="start middle">
             <hstack>
-              <text size="medium">Username:</text>
+              <text size="medium">Ussername:</text>
               <text size="medium" weight="bold">
                 {username ?? ''}
               </text>
