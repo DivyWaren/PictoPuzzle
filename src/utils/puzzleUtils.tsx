@@ -1,16 +1,18 @@
-import { Devvit } from '@devvit/public-api';
+import { Devvit } from '@devvit/public-api'
 
-export async function updatePuzzleTime(context: Devvit.Context, postId: string, username: string, time: number) {
+export async function updatePuzzleTime(context: Devvit.Context, postId: string, userId: string, time: number) {
   const key = `puzzle:${postId}`;
-  const field = username;
+  const leaderboardKey = `leaderboard:${postId}`;
 
   // Get the current best time for this user on this puzzle
-  const currentBestTime = await context.redis.hGet(key, field);
+  const currentBestTime = await context.redis.hGet(key, userId);
 
   // If there's no current time, or the new time is better, update it
   if (!currentBestTime || time < parseInt(currentBestTime)) {
-    await context.redis.hSet(key, { [field]: time.toString() });
-    console.log(`Updated best time for user ${username} on puzzle ${postId}: ${time}`);
+    await context.redis.hSet(key, { [userId]: time.toString() });
+    // Update the leaderboard
+    await context.redis.zAdd(leaderboardKey, { member: userId, score: time });
+    console.log(`Updated best time for user ${userId} on puzzle ${postId}: ${time}`);
     return true;
   } else {
     console.log(`Time not updated. Current best (${currentBestTime}) is better than new time (${time})`);

@@ -1,4 +1,4 @@
-import { isSolvable } from './puzzleUtils.js';
+import { isSolvable } from './checkPuzzle.js';
 
 class SlidingPuzzle {
   constructor() {

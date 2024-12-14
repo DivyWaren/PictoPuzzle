@@ -13,6 +13,7 @@ import { App } from './app.js';
 Devvit.configure({
   redditAPI: true,
   redis: true, // Enables Redis integration for storing and retrieving persistent data
+  realtime: true
 });
 
 

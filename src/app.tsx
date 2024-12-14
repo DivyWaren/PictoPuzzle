@@ -2,6 +2,7 @@ import { Devvit, useAsync, useState } from '@devvit/public-api';
 import { LoadingState } from './components/loading.js';
 import { WebViewMessage } from './types/WebViewMessage.js';
 import { getBestTime, updatePuzzleTime } from './utils/puzzleUtils.js';
+import { Leaderboard } from './components/leaderboard.js';
 
 export const App: Devvit.CustomPostComponent = (context) => {
   // Create a reactive state for web view visibility
@@ -125,55 +126,53 @@ export const App: Devvit.CustomPostComponent = (context) => {
       };
       
       // Render the custom post type
-      // console.log(currentBestTime)
       return (
-        
-        <vstack grow padding="small">
-          <vstack
-            grow={!webviewVisible}
-            height={webviewVisible ? '0%' : '100%'}
-            alignment="middle center"
-          >
-            <image url='logo.jpg' imageWidth={300} imageHeight={300}/>
-            <spacer />
-            <vstack alignment="start middle">
-              <hstack>
-                <text size="medium">Username:</text>
-                <text size="medium" weight="bold">
-                  {username ?? ''}
-                </text>
-              </hstack>
-              <hstack>
-                <text size="medium">Best Time:</text>
-                <BestTimeDisplay />
-              </hstack>
-            </vstack>
-            <spacer />
-            <button onPress={onShowWebviewClick}>Start Puzzle</button>
-          </vstack>
-  
-          {webviewVisible && (
-            <vstack grow={webviewVisible} height={webviewVisible ? '100%' : '0%'}>
-              <vstack border="thick" borderColor="black" height={webviewVisible ? '100%' : '0%'}>
-              <webview
-                id="myWebView"
-                url="page.html"
-                onMessage={(msg) => onMessage(msg as WebViewMessage)}
-                grow
-                height={webviewVisible ? '100%' : '0%'}
-              />
+        <>
+          {puzzleCompleted ? (
+            // Show only the Leaderboard component when the puzzle is completed
+            <Leaderboard postId={postId} userId={userId} />
+          ) : (
+            // Show the regular puzzle UI when the puzzle is not completed
+            <vstack grow padding="small">
+              <vstack
+                grow={!webviewVisible}
+                height={webviewVisible ? '0%' : '100%'}
+                alignment="middle center"
+              >
+                <image url="logo.jpg" imageWidth={300} imageHeight={300} />
+                <spacer />
+                <vstack alignment="start middle">
+                  <hstack>
+                    <text size="medium">Username:</text>
+                    <text size="medium" weight="bold">
+                      {username ?? ''}
+                    </text>
+                  </hstack>
+                  <hstack>
+                    <text size="medium">Best Time:</text>
+                    <BestTimeDisplay />
+                  </hstack>
+                </vstack>
+                <spacer />
+                <button onPress={onShowWebviewClick}>Start Puzzle</button>
               </vstack>
+      
+              {webviewVisible && (
+                <vstack grow={webviewVisible} height={webviewVisible ? '100%' : '0%'}>
+                  <vstack border="thick" borderColor="black" height={webviewVisible ? '100%' : '0%'}>
+                    <webview
+                      id="myWebView"
+                      url="page.html"
+                      onMessage={(msg) => onMessage(msg as WebViewMessage)}
+                      grow
+                      height={webviewVisible ? '100%' : '0%'}
+                    />
+                  </vstack>
+                </vstack>
+              )}
             </vstack>
           )}
-  
-          {puzzleCompleted && (
-            <vstack grow alignment="middle center">
-              <text size="xlarge" weight="bold">Puzzle Completed!</text>
-              <spacer size="medium" />
-              <text>Great job, {username}!</text>
-              <spacer size="medium" />
-            </vstack>
-          )}
-        </vstack>
+        </>
       );
+      
 };

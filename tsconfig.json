@@ -3,5 +3,5 @@
   "compilerOptions": {
     "noEmit": true
   },
-  "include": ["./src/**/*", "webroot/puzzleUtils.js"]
+  "include": ["./src/**/*", "webroot/checkPuzzle.js"]
 }
