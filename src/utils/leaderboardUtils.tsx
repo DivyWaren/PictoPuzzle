@@ -14,6 +14,16 @@ export async function getUserRank(context: Devvit.Context, postId: string, userI
   // zRank returns the 0-based rank, so we add 1 to get the position
   return rank !== undefined ? rank + 1 : null;
 }
+
+export async function getUsernameFromId(userId: string, context: Devvit.Context): Promise<string | undefined> {
+  try {
+    const user = await context.reddit.getUserById(userId);
+    return user?.username;
+  } catch (error) {
+    console.error(`Error fetching user: ${error}`);
+    return undefined;
+  }
+}
   
 export async function getLeaderboardWithUserRank(context: Devvit.Context, postId: string, username: string, limit: number = 5): Promise<{
   topScores: { member: string; score: number }[];

@@ -11,6 +11,7 @@ export const App: Devvit.CustomPostComponent = (context) => {
       const [puzzleCompleted, setPuzzleCompleted] = useState(false);
   
       const [currentBestTime, setCurrentBestTime] = useState<number | null>(null);
+      const [showLeaderboard, setShowLeaderboard] = useState(false);
   
       const { data: initialData, loading, error } = useAsync(async () => {
         const currUser = await context.reddit.getCurrentUser();
@@ -125,54 +126,67 @@ export const App: Devvit.CustomPostComponent = (context) => {
         );
       };
       
-      // Render the custom post type
-      return (
-        <>
+       // Main Menu UI
+  const MainMenu = () => (
+    <vstack grow padding="small" alignment="middle center">
+      <image url="logo.jpg" imageWidth={300} imageHeight={300} />
+      <spacer />
+      <vstack alignment="start middle">
+        <hstack>
+          <text size="medium">Username:</text>
+          <text size="medium" weight="bold">
+            {username ?? ''}
+          </text>
+        </hstack>
+        <hstack>
+          <text size="medium">Best Time:</text>
+          <BestTimeDisplay />
+        </hstack>
+      </vstack>
+      <spacer />
+      <button onPress={() => setWebviewVisible(true)}>Start Puzzle</button>
+      <spacer />
+      <button onPress={() => setShowLeaderboard(true)}>View Leaderboard</button> {/* Leaderboard Button */}
+    </vstack>
+  );
+
+  // Render Main Menu or Leaderboard
+  return (
+    <>
+      {showLeaderboard ? (
+        // Show the leaderboard view
+        <vstack grow alignment="middle center">
+          <Leaderboard postId={postId} userId={userId} />
+          <spacer />
+          <button onPress={() => setShowLeaderboard(false)}>Back to Main Menu</button>
+        </vstack>
+      ) : (
+        // Main menu or puzzle components
+        <vstack grow>
           {puzzleCompleted ? (
-            // Show only the Leaderboard component when the puzzle is completed
-            <Leaderboard postId={postId} userId={userId} />
+            <vstack grow alignment="middle center">
+              <Leaderboard postId={postId} userId={userId} />
+              <spacer />
+              <button onPress={() => setShowLeaderboard(false)}>Back to Main Menu</button>
+          </vstack>
           ) : (
-            // Show the regular puzzle UI when the puzzle is not completed
-            <vstack grow padding="small">
-              <vstack
-                grow={!webviewVisible}
-                height={webviewVisible ? '0%' : '100%'}
-                alignment="middle center"
-              >
-                <image url="logo.jpg" imageWidth={300} imageHeight={300} />
-                <spacer />
-                <vstack alignment="start middle">
-                  <hstack>
-                    <text size="medium">Username:</text>
-                    <text size="medium" weight="bold">
-                      {username ?? ''}
-                    </text>
-                  </hstack>
-                  <hstack>
-                    <text size="medium">Best Time:</text>
-                    <BestTimeDisplay />
-                  </hstack>
+            <>
+              {webviewVisible ? (
+                <vstack grow height="100%">
+                  <webview
+                    id="myWebView"
+                    url="page.html"
+                    onMessage={(msg) => onMessage(msg as WebViewMessage)}
+                    grow
+                  />
                 </vstack>
-                <spacer />
-                <button onPress={onShowWebviewClick}>Start Puzzle</button>
-              </vstack>
-      
-              {webviewVisible && (
-                <vstack grow={webviewVisible} height={webviewVisible ? '100%' : '0%'}>
-                  <vstack border="thick" borderColor="black" height={webviewVisible ? '100%' : '0%'}>
-                    <webview
-                      id="myWebView"
-                      url="page.html"
-                      onMessage={(msg) => onMessage(msg as WebViewMessage)}
-                      grow
-                      height={webviewVisible ? '100%' : '0%'}
-                    />
-                  </vstack>
-                </vstack>
+              ) : (
+                <MainMenu />
               )}
-            </vstack>
+            </>
           )}
-        </>
-      );
-      
+        </vstack>
+      )}
+    </>
+  );
 };
