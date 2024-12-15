@@ -9,11 +9,14 @@ import { LoadingState } from './components/loading.js';
 import { createNewPuzzle } from './menuItems/createPost.js';
 
 import { App } from './app.js';
+import { uploadPuzzleImage } from './menuItems/uploadPuzzleImage.js';
 
 Devvit.configure({
   redditAPI: true,
   redis: true, // Enables Redis integration for storing and retrieving persistent data
-  realtime: true
+  realtime: true,
+  media:true,
+  http: true,
 });
 
 
@@ -27,6 +30,7 @@ Devvit.addCustomPostType({
 /*
  * Menu Items
  */
-Devvit.addMenuItem(createNewPuzzle)
+Devvit.addMenuItem(createNewPuzzle);
+Devvit.addMenuItem(uploadPuzzleImage);
 
 export default Devvit;

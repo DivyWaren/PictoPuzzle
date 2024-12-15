@@ -1,7 +1,7 @@
 import { isSolvable } from './checkPuzzle.js';
 
-class SlidingPuzzle {
-  constructor() {
+export class SlidingPuzzle {
+  constructor(imageUrl) {
     // The container where the puzzle pieces are displayed
     this.container = document.querySelector('#puzzle-container');
 
@@ -24,7 +24,7 @@ class SlidingPuzzle {
     this.emptySlot = null;
 
     // Path to puzzle image
-    this.imageSrc = 'static/image.jpg';
+    this.imageSrc = imageUrl;
 
     this.startButton.addEventListener('click', () => this.startGame());
 
@@ -165,5 +165,3 @@ class SlidingPuzzle {
     this.container.appendChild(fullImage);
   }
 }
-
-new SlidingPuzzle();
