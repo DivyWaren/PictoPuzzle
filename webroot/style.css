@@ -9,20 +9,18 @@ body {
 
 #puzzle-container {
   display: grid;
-  grid-template-columns: repeat(3, 100px);
-  grid-template-rows: repeat(3, 100px);
   gap: 2px;
   margin: 20px auto;
-  width: 306px;
-  height: 306px;
+  width: 300px; /* Fixed container size */
+  height: 300px; /* Fixed container size */
+  position: relative;
   background: white; /* Optional to add contrast with the background */
   border: 2px solid #ccc;
 }
 
 .puzzle-piece {
-  width: 100px;
-  height: 100px;
-  background-size: 300px 300px;
+  background-size: 100%; /* Ensures the full image scales */
+  background-repeat: no-repeat;
   cursor: pointer;
   display: flex;
   justify-content: center;
@@ -34,6 +32,7 @@ body {
   border: 1px dashed #ccc;
   cursor: default;
 }
+
 
 .disabled {
   pointer-events: none;

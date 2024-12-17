@@ -7,34 +7,43 @@ import { Leaderboard } from './components/leaderboard.js';
 export const App: Devvit.CustomPostComponent = (context) => {
   // Create a reactive state for web view visibility
   const [webviewVisible, setWebviewVisible] = useState(false);
-
   const [puzzleCompleted, setPuzzleCompleted] = useState(false);
-
   const [currentBestTime, setCurrentBestTime] = useState<number | null>(null);
-
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   const { data: initialData, loading, error } = useAsync(async () => {
     const currUser = await context.reddit.getCurrentUser();
     const username = currUser?.username ?? 'anon';
     const userId = context.userId ?? 'anon';
-    const postId = context.postId ?? '';
-    let bestTime = null;
+    const postId = context.postId;
 
-    if (postId && userId) {
-      console.log("post id: " + postId);
-      console.log("user id" + userId);
-      bestTime = await getBestTime(context, postId, userId);
-      setCurrentBestTime(bestTime);
-      console.log("fetching done, best time is: " + bestTime);
+    if (!postId) {
+      throw new Error('Post ID is not available');
     }
 
-    // Fetch the image URL from Redis
-    const puzzleImageUrl = await context.redis.get('puzzleImageUrl');
-    console.log("Fetched puzzleImageUrl from Redis:", puzzleImageUrl);
+    let bestTime = null;
+    if (userId) {
+      bestTime = await getBestTime(context, postId, userId);
+      setCurrentBestTime(bestTime);
+    }
 
-    console.log("useAsync is almost done");
-    return { username, userId, postId, bestTime, puzzleImageUrl: puzzleImageUrl ?? null};
+    // Fetch the post data from Redis
+    const postData = await context.redis.hGetAll(`post:${postId}`);
+    if (!postData) {
+      throw new Error('Post data not found');
+    }
+
+    const { imageUrl, gridSize } = postData;
+
+    console.log("Fetched post data from Redis:", imageUrl, gridSize);
+
+    return { 
+      username, 
+      userId, 
+      postId, 
+      bestTime, 
+      puzzleImageUrl: imageUrl, 
+      gridSize: parseInt(gridSize, 10)};
   }, { depends: [context.userId || null]});
 
   // Renders loading state component
@@ -51,7 +60,7 @@ export const App: Devvit.CustomPostComponent = (context) => {
     return <text>Error: No data available</text>;
   }
 
-  const { username, userId, postId, bestTime, puzzleImageUrl } = initialData;
+  const { username, userId, postId, bestTime, puzzleImageUrl, gridSize } = initialData;
 
   // Update currentBestTime if it's different from the fetched bestTime
   if (bestTime != currentBestTime) {
@@ -140,9 +149,10 @@ export const App: Devvit.CustomPostComponent = (context) => {
       <button onPress={() => {
         setWebviewVisible(true);
         context.ui.webView.postMessage('myWebView', {
-          type: 'setImageUrl',
+          type: 'setPuzzleDetails',
           data: {
-            puzzleImageUrl: initialData.puzzleImageUrl
+            puzzleImageUrl: puzzleImageUrl,
+            gridSize: gridSize
           },
         });
       }}
