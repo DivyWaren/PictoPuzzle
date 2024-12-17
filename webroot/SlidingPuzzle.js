@@ -56,28 +56,43 @@ export class SlidingPuzzle {
   renderPuzzle() {
     // Reset the container
     this.container.innerHTML = '';
-
+  
+    // Set grid-template dynamically for rows and columns
+    this.container.style.gridTemplateColumns = `repeat(${this.gridSize}, 1fr)`;
+    this.container.style.gridTemplateRows = `repeat(${this.gridSize}, 1fr)`;
+  
+    // Calculate the size of each tile dynamically
+    const tileWidth = this.container.offsetWidth / this.gridSize;
+    const tileHeight = this.container.offsetHeight / this.gridSize;
+  
     this.puzzleState.forEach((pos, index) => {
       const piece = document.createElement('div');
       piece.className = 'puzzle-piece';
-
+  
       if (pos === this.gridSize * this.gridSize - 1) {
         // Empty slot
         piece.classList.add('empty-slot');
         this.emptySlot = index;
       } else {
+        // Position and style each puzzle piece
+        piece.style.width = `${tileWidth}px`;
+        piece.style.height = `${tileHeight}px`;
+  
         piece.style.backgroundImage = `url(${this.imageSrc})`;
-        piece.style.backgroundPosition = `${(pos % this.gridSize) * -100}px ${(Math.floor(pos / this.gridSize)) * -100}px`;
+        piece.style.backgroundSize = `${this.gridSize * 100}% ${this.gridSize * 100}%`;
+        piece.style.backgroundPosition = `${(pos % this.gridSize) * -tileWidth}px ${(Math.floor(pos / this.gridSize)) * -tileHeight}px`;
+  
         piece.dataset.index = pos;
-
+  
         // Add click event for sliding
         piece.addEventListener('click', () => this.slidePiece(index));
       }
-
+  
       this.container.appendChild(piece);
     });
   }
-
+  
+  
   slidePiece(index) {
     const row = Math.floor(index / this.gridSize);
     const col = index % this.gridSize;

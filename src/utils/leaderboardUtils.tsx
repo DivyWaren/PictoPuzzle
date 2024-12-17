@@ -1,5 +1,4 @@
 import { Devvit } from '@devvit/public-api';
-import { getBestTime } from './puzzleUtils.js';
 
 export async function getLeaderboard(context: Devvit.Context, postId: string): Promise<{ member: string; score: number }[]> {
   const leaderboardKey = `leaderboard:${postId}`;
