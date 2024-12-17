@@ -157,10 +157,13 @@ export const App: Devvit.CustomPostComponent = (context) => {
     <>
       {showLeaderboard ? (
         // Show the leaderboard view
-        <vstack grow alignment="middle center">
-          <Leaderboard postId={postId} userId={userId} />
-          <spacer />
-          <button onPress={() => setShowLeaderboard(false)}>Back to Main Menu</button>
+        <vstack grow>
+          <vstack grow alignment="middle center">
+            <Leaderboard postId={postId} userId={userId} />
+          </vstack>
+          <hstack alignment="start bottom">
+            <button onPress={() => setShowLeaderboard(false)}>Back to Main Menu</button>
+          </hstack>
         </vstack>
       ) : (
         // Main menu or puzzle components

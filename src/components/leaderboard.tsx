@@ -37,22 +37,24 @@ export const Leaderboard = (props: { postId: string; userId: string }, context: 
   }
 
   return (
-    <vstack gap="small">
-      <text size="large" weight="bold">Puzzle Leaderboard</text>
+    <vstack gap="small" padding="small" cornerRadius="medium">
+      <hstack alignment="top center">
+  <text size="xlarge" weight="bold" color="#ff4500">Puzzle Leaderboard</text>
+</hstack>
       {leaderboardData.topScores.map((score, index) => (
-        <hstack key={index.toString()} gap="small" alignment="center">
-          <text>{index + 1}.</text>
-          <text>{score.username}</text>
-          <text>{formatTime(score.score)}</text>
+        <hstack key={index.toString()} gap="small" backgroundColor={index % 2 === 0 ? '#ffffff' : '#f0f0f0'} padding="xsmall" cornerRadius="small">
+          <text width="10%" color="#888888">{index + 1}.</text>
+          <text width="60%" color="#1a1a1b">{score.username}</text>
+          <text width="30%" color="#0079d3" alignment="end middle">{formatTime(score.score)}</text>
         </hstack>
       ))}
       {leaderboardData.userRank && leaderboardData.userRank > 5 && (
         <vstack gap="small">
-          <text>...</text>
-          <hstack gap="small" alignment="center">
-            <text>{leaderboardData.userRank}.</text>
-            <text>{leaderboardData.userUsername || 'Unknown User'}</text>
-            <text>{formatTime(leaderboardData.userScore!)}</text>
+          <text alignment="center middle">...</text>
+          <hstack gap="small" alignment="center middle" backgroundColor="#e9f5fd" padding="xsmall" cornerRadius="small">
+            <text width="10%" color="#888888">{leaderboardData.userRank}.</text>
+            <text width="60%" color="#1a1a1b" weight="bold">{leaderboardData.userUsername || 'Unknown User'}</text>
+            <text width="30%" color="#0079d3" alignment="end middle" weight="bold">{formatTime(leaderboardData.userScore!)}</text>
           </hstack>
         </vstack>
       )}
