@@ -10,7 +10,7 @@ export const createNewPuzzle: MenuItem = {
     const { reddit, ui } = context;
     const subreddit = await reddit.getCurrentSubreddit();
     const post = await reddit.submitPost({
-      title: 'Webview Example',
+      title: 'PictoPuzzle',
       subredditName: subreddit.name,
       // The preview appears while the post loads
       preview: <LoadingState/>,

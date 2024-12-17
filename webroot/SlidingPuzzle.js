@@ -1,7 +1,7 @@
 import { isSolvable } from './checkPuzzle.js';
 
 export class SlidingPuzzle {
-  constructor(imageUrl) {
+  constructor(imageUrl, gridSize = 3) {
     // The container where the puzzle pieces are displayed
     this.container = document.querySelector('#puzzle-container');
 
@@ -15,7 +15,7 @@ export class SlidingPuzzle {
     this.timerInterval = null;
 
     // Set grid size (3x3)
-    this.gridSize = 3;
+    this.gridSize = gridSize;
 
     // Array to track current positions of the tiles
     this.puzzleState = [];

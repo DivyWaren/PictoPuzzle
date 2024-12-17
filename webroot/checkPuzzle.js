@@ -30,7 +30,20 @@ export function getInvCount(arr, gridSize) {
  */
 export function isSolvable(puzzleState, gridSize) {
   console.log("isSolvable");
-  const invCount = getInvCount(puzzleState, gridSize);
-  // For a gridSize x gridSize puzzle, it's solvable if inversions are even
-  return invCount % 2 === 0;
+
+  const invCount = getInvCount(puzzleState, gridSize); // Count inversions
+  const totalPieces = gridSize * gridSize;
+
+  // Find the row of the empty slot, counting from the bottom
+  const emptySlotIndex = puzzleState.indexOf(totalPieces - 1);
+  const emptySlotRowFromBottom = gridSize - Math.floor(emptySlotIndex / gridSize);
+
+  // Odd grid sizes: solvable if inversions are even
+  if (gridSize % 2 !== 0) {
+    return invCount % 2 === 0;
+  }
+  // Even grid sizes: solvable if (inversions + empty slot row) is odd
+  else {
+    return (invCount + emptySlotRowFromBottom) % 2 === 0;
+  }
 }
