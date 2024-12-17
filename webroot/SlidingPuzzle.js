@@ -11,6 +11,9 @@ export class SlidingPuzzle {
     // Button to start game timer
     this.startButton = document.querySelector('#start-timer');
 
+    // Button to show full image
+    this.showImageButton = document.querySelector('#show-image-button');
+
     this.timer = 0;
     this.timerInterval = null;
 
@@ -27,6 +30,8 @@ export class SlidingPuzzle {
     this.imageSrc = imageUrl;
 
     this.startButton.addEventListener('click', () => this.startGame());
+
+    this.showImageButton.addEventListener('click', () => this.showImageOverlay());
 
     this.showFullImage();
   }
@@ -178,5 +183,21 @@ export class SlidingPuzzle {
     fullImage.style.backgroundSize = 'cover';
 
     this.container.appendChild(fullImage);
+  }
+
+  showImageOverlay() {
+    const overlay = document.createElement('div');
+    overlay.className = 'overlay';
+
+    const image = document.createElement('img');
+    image.src = this.imageSrc;
+    overlay.appendChild(image);
+
+    // Add event listener to hide the overlay when clicked
+    overlay.addEventListener('click', () => {
+      overlay.remove();
+    });
+
+    document.body.appendChild(overlay);
   }
 }
