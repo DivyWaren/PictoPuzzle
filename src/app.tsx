@@ -182,7 +182,7 @@ export const App: Devvit.CustomPostComponent = (context) => {
             <vstack grow alignment="middle center">
               <Leaderboard postId={postId} userId={userId} />
               <spacer />
-              <button onPress={() => setShowLeaderboard(false)}>Back to Main Menu</button>
+              <button onPress={() => {setShowLeaderboard(false);setPuzzleCompleted(false);}}> Back to Main Menu</button>
           </vstack>
           ) : (
             <>
