@@ -26,22 +26,27 @@ export function getInvCount(arr) {
  * @returns {boolean} - Whether the puzzle is solvable
  */
 export function isSolvable(puzzleState, gridSize) {
-  console.log("isSolvable");
+  // console.log("isSolvable");
 
   const invCount = getInvCount(puzzleState); // Count inversions
-  console.log(`Inversion Count: ${invCount}`);
+  // console.log(`Inversion Count: ${invCount}`);
 
   // Find the row of the empty slot, counting from the bottom
   const emptySlotIndex = puzzleState.indexOf(0);
   const emptySlotRowFromBottom = gridSize - Math.floor(emptySlotIndex / gridSize);
-  console.log(`Empty Slot Row (from bottom): ${emptySlotRowFromBottom}`);
-
-  // Odd grid sizes: Solvable if inversions are even
-  if (gridSize % 2 !== 0) {
-    return invCount % 2 === 0;
+  // console.log(`Empty Slot Row (from bottom): ${emptySlotRowFromBottom}`);
+  if (invCount>=3){
+    // Odd grid sizes: Solvable if inversions are even
+    if (gridSize % 2 !== 0) {
+      return invCount % 2 === 0 && emptySlotRowFromBottom % 2 === 0;
+    }
+    // Even grid sizes: Solvable if (inversions + empty slot row) is odd
+    else {
+      return (invCount + emptySlotRowFromBottom) % 2 === 1;
+    }
+  }  
+  else{
+    return false;
   }
-  // Even grid sizes: Solvable if (inversions + empty slot row) is odd
-  else {
-    return (invCount + emptySlotRowFromBottom) % 2 === 1;
-  }
+    
 }
